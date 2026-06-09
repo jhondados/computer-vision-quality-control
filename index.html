@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Computer Vision Quality Control — AI Demo | Jhon E. Martinez</title>
+<meta name="description" content="AI visual quality control for manufacturing: YOLOv9 defect detection, anomaly detection with PatchCore, 3D point cloud inspection, real-time conveyor belt monit"/>
+<meta name="keywords" content="computer-vision, quality-control, yolov9, anomaly-detection, manufacturing, python, industrial-ai, defect-detection"/>
+<meta property="og:title" content="Computer Vision Quality Control — Live AI Demo"/>
+<meta property="og:description" content="AI visual quality control for manufacturing: YOLOv9 defect detection, anomaly detection with PatchCore, 3D point cloud inspection, real-time conveyor belt monit"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+</script>
+<style>
+:root{--c:#ef4444}
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;overflow-x:hidden}
+.dark body{background:#0a0a0f;color:#f1f5f9}
+.light body{background:#f8fafc;color:#0f172a}
+.glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)}
+.light .glass{background:rgba(255,255,255,0.8);border:1px solid rgba(15,23,42,0.08);box-shadow:0 4px 24px rgba(99,102,241,0.06)}
+.gtext{background:linear-gradient(135deg,var(--c),#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.glow{box-shadow:0 0 50px var(--c)55}
+.card-hover{transition:all .3s cubic-bezier(.4,0,.2,1)}
+.card-hover:hover{transform:translateY(-3px)}
+.tag{display:inline-flex;align-items:center;padding:3px 12px;border-radius:9999px;font-size:12px;font-weight:600}
+.btn-p{background:linear-gradient(135deg,var(--c),#8b5cf6);color:#fff;padding:11px 26px;border-radius:12px;font-weight:600;font-size:14px;border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--c)66}
+.btn-g{background:transparent;color:var(--c);padding:11px 26px;border-radius:12px;font-weight:600;font-size:14px;border:1px solid var(--c)66;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-g:hover{background:var(--c)1a}
+.light .text-white{color:#0f172a !important}
+.light .text-gray-400{color:#475569 !important}
+.light .text-gray-300{color:#334155 !important}
+.light .text-gray-500{color:#64748b !important}
+.code-box{background:#0d1117;border:1px solid #1e2430;border-radius:14px;overflow:hidden}
+.light .code-box{background:#1a1f2e}
+.code-box pre{margin:0;padding:18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:#c9d1d9}
+.scrollbar-thin::-webkit-scrollbar{height:6px;width:6px}
+.scrollbar-thin::-webkit-scrollbar-thumb{background:var(--c)55;border-radius:3px}
+input,textarea{outline:none}
+.noise{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes slideUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+.animate-float{animation:float 6s ease-in-out infinite}
+.animate-slide{animation:slideUp .5s ease-out}
+.animate-fade{animation:fadeIn .6s ease-out}
+.demo-bg{background:linear-gradient(135deg,#0f0f1a,#1a1030 55%,#0f1a1a)}
+.light .demo-bg{background:linear-gradient(135deg,#1a1f2e,#221a30)}
+</style>
+</head>
+<body class="dark">
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const CFG = {"name": "Computer Vision Quality Control", "repo": "computer-vision-quality-control", "desc": "AI visual quality control for manufacturing: YOLOv9 defect detection, anomaly detection with PatchCore, 3D point cloud inspection, real-time conveyor belt monitoring and MES integration", "tagline": "AI quality inspector running at 220 parts/min on production line. YOLOv9 detects 23 defect types with 99.3% precision and < 0.4% false positives. Replaced 8 human inspectors, zero defective products shipped.", "cat": "vision", "catLabel": "Computer Vision", "catColor": "#ef4444", "catIcon": "👁️", "tech": ["computer-vision", "quality-control", "yolov9", "anomaly-detection", "manufacturing", "python"], "metrics": [{"name": "Defect Detection", "value": "99.3% Precision"}, {"name": "Speed", "value": "220 parts/min"}, {"name": "False Positives", "value": "< 0.4%"}], "features": ["Surface: scratches, dents, discoloration, oxidation, contamination", "Dimensional: out-of-tolerance measurements, missing holes, wrong orientation", "Assembly: missing components, wrong placement, loose connections", "Packaging: label errors, seal defects, fill level, damaged packaging", "0 defective units reached end customers", "99.3% precision (vs 94.2% with human inspection)"], "codePath": "qc/inspector.py", "code": "\"\"\"AI visual quality control inspector.\"\"\"\nimport cv2\nimport numpy as np\nfrom ultralytics import YOLO\nfrom typing import List, Dict, Tuple\nfrom pathlib import Path\n\nclass VisualQCInspector:\n    DEFECT_CLASSES = [\"scratch\", \"dent\", \"discoloration\", \"contamination\",\n                      \"missing_component\", \"wrong_orientation\", \"dimension_error\"]\n\n    def __init__(self, model_path: str = \"qc_yolov9.pt\", conf_threshold: float = 0.85):\n        self.model = YOLO(model_path)\n        self.conf_threshold = conf_threshold\n        self.inspection_count = 0\n        self.defect_count = 0\n\n    def inspect(self, image: np.ndarray) -> Dict:\n        \"\"\"Inspect a single part image for defects.\"\"\"\n        results = self.model.predict(image, conf=self.conf_threshold, verbose=False)[0]\n        defects = []\n        for box in results.boxes:\n            defect = {\"class\": self.DEFECT_CLASSES[int(box.cls[0])] if int(box.cls[0]) < len(self.DEFECT_CLASSES) else \"unknown\",\n                      \"confidence\": float(box.conf[0]),\n                      \"bbox\": box.xyxy[0].tolist(),\n                      \"severity\": \"critical\" if float(box.conf[0]) > 0.95 else \"warning\"}\n            defects.append(defect)\n        self.inspection_count += 1\n        if defects: self.defect_count += 1\n        decision = \"REJECT\" if any(d[\"severity\"] == \"critical\" for d in defects) else \\\n                   \"REVIEW\" if defects else \"PASS\"\n        return {\"decision\": decision, \"defects\": defects, \"defect_count\": len(defects),\n                \"inspection_id\": self.inspection_count}\n\n    def draw_annotations(self, image: np.ndarray, inspection_result: Dict) -> np.ndarray:\n        colors = {\"PASS\": (0, 255, 0), \"REVIEW\": (0, 165, 255), \"REJECT\": (0, 0, 255)}\n        annotated = image.copy()\n        for defect in inspection_result[\"defects\"]:\n            x1, y1, x2, y2 = [int(v) for v in defect[\"bbox\"]]\n            color = (0, 0, 255) if defect[\"severity\"] == \"critical\" else (0, 165, 255)\n            cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)\n            label = f\"{defect['class']} {defect['confidence']:.2f}\"\n            cv2.putText(annotated, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)\n        decision = inspection_result[\"decision\"]\n        cv2.putText(annotated, decision, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, colors[decision], 3)\n        return annotated\n", "demoType": "vision", "portfolioUrl": "https://jhondados.github.io/portfolio", "githubUser": "jhondados"};
+const {useState,useEffect,useRef,useMemo} = React;
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+
+// ============ DEMOS ============
+function RAGDemo(){
+  const [q,setQ]=useState(''),[step,setStep]=useState(0),[docs,setDocs]=useState([]),[ans,setAns]=useState('');
+  const DOCS=[{t:'Documento Corporativo Q3',s:0.94,c:'Receita cresceu 23% impulsionada por novos produtos...'},{t:'Análise Setorial 2024',s:0.88,c:'O mercado de IA atingiu R$2.4B em volume...'},{t:'Plano Estratégico',s:0.82,c:'Expansão prevista para 3 novos verticais...'}];
+  const run=async()=>{if(!q.trim())return;setStep(1);setDocs([]);setAns('');await delay(600);setStep(2);for(let i=0;i<DOCS.length;i++){await delay(350);setDocs(d=>[...d,DOCS[i]])}await delay(500);setStep(3);await delay(700);setAns('Com base nos documentos recuperados e ranqueados por relevância semântica, a análise indica crescimento consistente de 23% no período, alinhado à expansão do mercado de IA que atingiu R$2.4B.');};
+  return(<div className="space-y-3 text-sm">
+    <div className="flex gap-2"><input value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&run()} placeholder="Faça uma pergunta sobre os documentos..." className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:border-[var(--c)]"/><button onClick={run} className="btn-p text-sm px-4 py-2.5">🔍 Buscar</button></div>
+    {step>=1&&<div className="flex items-center gap-2 text-[var(--c)] text-xs"><span className="animate-spin">⚙️</span> Gerando embedding da query (768d)...</div>}
+    {step>=2&&<div className="space-y-2"><div className="text-xs text-purple-400 font-medium">📄 Top documentos recuperados (HNSW):</div>{docs.map((d,i)=><div key={i} className="bg-[var(--c)]/10 border border-[var(--c)]/25 rounded-lg p-2.5 animate-fade"><div className="flex justify-between text-xs"><span className="text-white font-medium">{d.t}</span><span className="text-green-400 font-mono">score {d.s}</span></div><div className="text-gray-400 text-xs mt-1">{d.c}</div></div>)}</div>}
+    {step>=3&&ans&&<div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 animate-slide"><div className="text-xs text-green-400 mb-1 font-medium">✅ Resposta gerada pelo LLM (com fontes):</div><div className="text-gray-200 text-xs leading-relaxed">{ans}</div></div>}
+  </div>);
+}
+function AgentDemo(){
+  const [run,setRun]=useState(false),[done,setDone]=useState([]);
+  const S=[{i:'🔍',l:'Planner Agent',s:'Decompondo tarefa em sub-objetivos...'},{i:'🛠️',l:'Tool Agent',s:'Executando ferramentas e APIs...'},{i:'🧐',l:'Critic Agent',s:'Validando e refinando resultados...'},{i:'✍️',l:'Synthesizer',s:'Sintetizando resposta final...'},{i:'✅',l:'Concluído',s:'Tarefa completada com sucesso!'}];
+  const go=async()=>{setRun(true);setDone([]);for(let i=0;i<S.length;i++){await delay(750);setDone(d=>[...d,i])}setRun(false)};
+  return(<div className="space-y-2">
+    <div className="text-xs text-gray-400 mb-3">Objetivo: <span className="text-[var(--c)] font-medium">"Pesquisar e sintetizar conhecimento sobre o domínio"</span></div>
+    {S.map((s,i)=><div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg transition-all ${done.includes(i)?'bg-[var(--c)]/15 border border-[var(--c)]/30':'bg-black/20 border border-white/5 opacity-40'}`}><span className={`text-lg ${done.includes(i)&&i===done[done.length-1]&&run?'animate-spin':''}`}>{s.i}</span><div><div className="text-xs font-semibold text-white">{s.l}</div><div className="text-xs text-gray-400">{s.s}</div></div>{done.includes(i)&&<span className="ml-auto text-green-400">✓</span>}</div>)}
+    <button onClick={go} disabled={run} className="btn-p w-full text-sm mt-2 justify-center">{run?'Executando agentes...':'▶ Iniciar Pipeline de Agentes'}</button>
+  </div>);
+}
+function LLMDemo(){
+  const [v,setV]=useState({a:65,b:48,c:72,d:33});
+  const score=useMemo(()=>Math.min(.98,Math.max(.03,(v.a*.4+v.b*.25+v.c*.2+v.d*.15)/100)),[v]);
+  const F=[{n:'Feature relevância',k:'a'},{n:'Qualidade do dado',k:'b'},{n:'Sinal temporal',k:'c'},{n:'Contexto adicional',k:'d'}];
+  const lbl=score>.7?'🔴 Alta probabilidade':score>.4?'🟡 Média probabilidade':'🟢 Baixa probabilidade';
+  const col=score>.7?'#ef4444':score>.4?'#f59e0b':'#10b981';
+  return(<div className="space-y-3">{F.map(f=><div key={f.k}><div className="flex justify-between text-xs text-gray-400 mb-1"><span>{f.n}</span><span className="text-white font-mono">{v[f.k]}</span></div><input type="range" min="0" max="100" value={v[f.k]} onChange={e=>setV(s=>({...s,[f.k]:+e.target.value}))} className="w-full" style={{accentColor:'var(--c)',height:'4px'}}/></div>)}
+    <div className="bg-black/40 rounded-xl p-3 border border-white/10 mt-3"><div className="flex justify-between items-center mb-2"><span className="text-xs text-gray-400">Predição do Modelo</span><span className="text-xs font-bold">{lbl}</span></div><div className="w-full bg-gray-800 rounded-full h-3"><div className="h-3 rounded-full transition-all duration-500" style={{width:`${score*100}%`,background:`linear-gradient(90deg,${col},${col}aa)`}}/></div><div className="text-right text-xs font-mono mt-1 text-gray-300">{(score*100).toFixed(1)}% confiança</div></div>
+  </div>);
+}
+function NLPDemo(){
+  const [t,setT]=useState(''),[r,setR]=useState(null);
+  const an=()=>{if(!t.trim())return;const w=t.toLowerCase();const pos=['ótimo','excelente','incrível','bom','gosto','perfeito','maravilhoso','recomendo'].filter(x=>w.includes(x));const neg=['ruim','péssimo','horrível','problema','erro','difícil','odeio','lixo'].filter(x=>w.includes(x));const sen=pos.length>neg.length?'Positivo':neg.length>pos.length?'Negativo':'Neutro';const sc=pos.length>neg.length?.72+Math.random()*.23:neg.length>pos.length?.05+Math.random()*.2:.42+Math.random()*.16;const ent=[];if(/\b[A-Z][a-z]+\s[A-Z][a-z]+/.test(t))ent.push({e:'Nome próprio',ty:'PER'});if(/\b(São Paulo|Rio|Brasil|Google|Apple|Amazon|Microsoft)\b/i.test(t)){const m=t.match(/\b(São Paulo|Rio|Brasil|Google|Apple|Amazon|Microsoft)\b/i);ent.push({e:m[0],ty:'ORG/LOC'})}setR({sen,sc,ent,tok:t.split(' ').length});};
+  const col={Positivo:'text-green-400',Negativo:'text-red-400',Neutro:'text-yellow-400'};
+  return(<div className="space-y-3"><textarea value={t} onChange={e=>setT(e.target.value)} placeholder="Digite um texto em português para análise de sentimento e entidades (NER)..." className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-gray-500 text-sm resize-none h-20 focus:border-[var(--c)]"/><button onClick={an} className="btn-p w-full text-sm justify-center">🧠 Analisar com NLP</button>
+    {r&&<div className="grid grid-cols-2 gap-2 animate-fade"><div className="bg-black/30 border border-white/10 rounded-lg p-2.5"><div className="text-xs text-gray-400">Sentimento</div><div className={`text-base font-bold ${col[r.sen]}`}>{r.sen}</div><div className="text-xs text-gray-500">{(r.sc*100).toFixed(0)}% confiança</div></div><div className="bg-black/30 border border-white/10 rounded-lg p-2.5"><div className="text-xs text-gray-400">Tokens</div><div className="text-base font-bold text-[var(--c)]">{r.tok}</div><div className="text-xs text-gray-500">BERTimbau PT-BR</div></div>{r.ent.length>0&&<div className="col-span-2 bg-purple-500/10 border border-purple-500/20 rounded-lg p-2.5"><div className="text-xs text-purple-400 mb-1">Entidades (NER):</div>{r.ent.map((e,i)=><span key={i} className="tag bg-purple-500/20 text-purple-300 mr-1 text-xs">{e.e} · {e.ty}</span>)}</div>}</div>}
+  </div>);
+}
+function PipelineDemo(){
+  const [act,setAct]=useState(-1);
+  const N=['Source','Extract','Transform','Load','Monitor'],C=['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b'],E=['📥','⚙️','🔄','💾','📊'];
+  useEffect(()=>{let i=0;const iv=setInterval(()=>{setAct(i%N.length);i++},900);return()=>clearInterval(iv)},[]);
+  return(<div className="space-y-4"><div className="flex items-center justify-between">{N.map((n,i)=><React.Fragment key={i}><div className="flex flex-col items-center gap-1" style={{transform:act===i?'scale(1.12)':'scale(1)',transition:'.3s'}}><div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg transition-all" style={{background:act===i?C[i]+'30':'rgba(255,255,255,.05)',border:`1px solid ${act===i?C[i]:'rgba(255,255,255,.1)'}`,boxShadow:act===i?`0 0 20px ${C[i]}55`:''}}>{E[i]}</div><span className="text-xs" style={{color:act===i?C[i]:'#9ca3af'}}>{n}</span></div>{i<N.length-1&&<div className="flex-1 h-px mx-1" style={{background:'rgba(255,255,255,.1)'}}/>}</React.Fragment>)}</div>
+    <div className="bg-black/30 rounded-xl p-3 border border-white/5 font-mono text-xs space-y-1"><div className="text-green-400">✓ 10M eventos/segundo processados</div><div className="text-[var(--c)]">⚡ Latência P99: 1.8ms</div><div className="text-purple-400">📊 BigQuery: 50TB/dia carregados</div><div className="text-yellow-400">🔔 0 alertas de qualidade hoje</div></div>
+  </div>);
+}
+function VisionDemo(){
+  const ref=useRef(null);
+  useEffect(()=>{const cv=ref.current;if(!cv)return;const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;const B=[{x:20,y:20,w:85,h:62,l:'Objeto A',c:0.97,col:'#10b981'},{x:155,y:38,w:62,h:52,l:'Objeto B',c:0.91,col:'#6366f1'},{x:80,y:92,w:72,h:40,l:'Atenção',c:0.84,col:'#f59e0b'}];let f=0;const an=()=>{ctx.clearRect(0,0,W,H);ctx.fillStyle='#0a0a1a';ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(99,102,241,0.1)';ctx.lineWidth=1;for(let x=0;x<W;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}B.forEach((b,i)=>{const p=Math.sin(f*.05+i)*.3+.7;ctx.strokeStyle=b.col;ctx.lineWidth=2;ctx.globalAlpha=p;ctx.strokeRect(b.x,b.y,b.w,b.h);ctx.fillStyle=b.col+'20';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.globalAlpha=1;ctx.fillStyle=b.col;ctx.fillRect(b.x,b.y-14,b.w,14);ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.fillText(`${b.l} ${(b.c*100).toFixed(0)}%`,b.x+3,b.y-3)});const sy=(f*2)%H;ctx.strokeStyle='rgba(6,182,212,0.4)';ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke();f++;requestAnimationFrame(an)};const raf=requestAnimationFrame(an);return()=>cancelAnimationFrame(raf)},[]);
+  return(<div className="space-y-2"><div className="flex justify-between text-xs text-gray-400"><span>🎥 Detecção em tempo real (YOLO)</span><span className="text-green-400">● LIVE</span></div><canvas ref={ref} width={280} height={145} className="w-full rounded-lg"/></div>);
+}
+function SecurityDemo(){
+  const [ev,setEv]=useState([]);
+  const F=[{t:'BLOQUEADO',c:'#ef4444',m:'Injeção detectada — IP 203.0.113.42'},{t:'ALERTA',c:'#f59e0b',m:'Acesso anômalo às 03:14 — admin'},{t:'OK',c:'#10b981',m:'Scan bloqueado — 847 tentativas'},{t:'BLOQUEADO',c:'#ef4444',m:'Payload malicioso — /api/search'},{t:'OK',c:'#10b981',m:'DDoS mitigado — 2.4M req/s'},{t:'BLOQUEADO',c:'#ef4444',m:'Prompt injection bloqueado — LLM'}];
+  useEffect(()=>{let i=0;const iv=setInterval(()=>{setEv(e=>[{...F[i%F.length],id:Date.now()},...e].slice(0,6));i++},1200);return()=>clearInterval(iv)},[]);
+  return(<div className="space-y-2"><div className="flex justify-between text-xs text-gray-400 mb-1"><span>🔴 Feed de ameaças em tempo real</span><span className="text-green-400">● LIVE</span></div>{ev.map(e=><div key={e.id} className="flex items-center gap-2 bg-black/30 border border-white/5 rounded-lg p-2 animate-slide text-xs"><span className="tag text-xs px-2 py-0 font-bold" style={{background:e.c+'25',color:e.c}}>{e.t}</span><span className="text-gray-300 truncate">{e.m}</span></div>)}</div>);
+}
+function ChartDemo(){
+  const ref=useRef(null);
+  useEffect(()=>{const cv=ref.current;if(!cv)return;const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;const data=Array.from({length:30},(_,i)=>40+Math.sin(i*.4)*20+Math.random()*8);const preds=Array.from({length:10},(_,i)=>data[29]+i*1.8+Math.random()*6);const all=[...data,...preds];const mn=Math.min(...all)-5,mx=Math.max(...all)+5;const sx=W/(all.length+2),sy=(H-20)/(mx-mn);const tx=i=>sx*(i+1),ty=v=>H-10-(v-mn)*sy;ctx.clearRect(0,0,W,H);ctx.fillStyle='rgba(10,10,20,0.4)';ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(255,255,255,0.05)';for(let y=0;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}ctx.fillStyle='var(--c)';ctx.globalAlpha=.08;ctx.beginPath();for(let i=0;i<preds.length;i++)ctx.lineTo(tx(30+i),ty(preds[i])-8);for(let i=preds.length-1;i>=0;i--)ctx.lineTo(tx(30+i),ty(preds[i])+8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=CFG.catColor;ctx.lineWidth=2;ctx.beginPath();data.forEach((v,i)=>i?ctx.lineTo(tx(i),ty(v)):ctx.moveTo(tx(i),ty(v)));ctx.stroke();ctx.strokeStyle='#06b6d4';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(tx(29),ty(data[29]));preds.forEach((v,i)=>ctx.lineTo(tx(30+i),ty(v)));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='9px monospace';ctx.fillText('Histórico',8,14);ctx.fillStyle='#06b6d4';ctx.fillText('Forecast',W*.66,14)},[]);
+  return(<div className="space-y-2"><div className="text-xs text-gray-400">📈 Predição com banda de confiança 95%</div><canvas ref={ref} width={280} height={125} className="w-full rounded-lg demo-bg"/><div className="grid grid-cols-3 gap-2 text-center"><div className="bg-black/30 rounded-lg p-2"><div className="text-xs text-gray-500">MAPE</div><div className="text-sm font-bold text-green-400">4.1%</div></div><div className="bg-black/30 rounded-lg p-2"><div className="text-xs text-gray-500">Horizonte</div><div className="text-sm font-bold text-[var(--c)]">10 períodos</div></div><div className="bg-black/30 rounded-lg p-2"><div className="text-xs text-gray-500">R²</div><div className="text-sm font-bold text-purple-400">0.94</div></div></div></div>);
+}
+function ChatDemo(){
+  const [msgs,setMsgs]=useState([{r:'bot',t:'Olá! Sou o assistente AI deste projeto. Faça uma pergunta para ver o modelo respondendo em tempo real.'}]);
+  const [inp,setInp]=useState('');
+  const send=async()=>{if(!inp.trim())return;const q=inp;setMsgs(m=>[...m,{r:'user',t:q}]);setInp('');await delay(700);const r=`Processando "${q.slice(0,40)}"... Com base no contexto do domínio e nos dados disponíveis, a recomendação é analisar os indicadores-chave e aplicar a estratégia sugerida pelo modelo. Esta resposta foi gerada considerando as melhores práticas do setor.`;setMsgs(m=>[...m,{r:'bot',t:r}])};
+  return(<div className="space-y-2"><div className="h-32 overflow-y-auto space-y-2 scrollbar-thin pr-1">{msgs.map((m,i)=><div key={i} className={`flex ${m.r==='user'?'justify-end':''}`}><div className={`text-xs px-3 py-2 rounded-xl max-w-[85%] ${m.r==='user'?'text-white':'bg-white/10 text-gray-200'}`} style={m.r==='user'?{background:'var(--c)'}:{}}>{m.t}</div></div>)}</div><div className="flex gap-2"><input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Digite sua mensagem..." className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:border-[var(--c)]"/><button onClick={send} className="btn-p text-sm px-3 py-2">→</button></div></div>);
+}
+const DEMOS={rag:RAGDemo,agent:AgentDemo,llm:LLMDemo,nlp:NLPDemo,pipeline:PipelineDemo,vision:VisionDemo,security:SecurityDemo,chart:ChartDemo,chat:ChatDemo};
+
+// ============ APP ============
+function App(){
+  const [dark,setDark]=useState(true);
+  useEffect(()=>{document.documentElement.className=dark?'dark':'light'},[dark]);
+  const Demo=DEMOS[CFG.demoType]||PipelineDemo;
+  const repoUrl=`https://github.com/${CFG.githubUser}/${CFG.repo}`;
+  return(<div style={{minHeight:'100vh'}}>
+    {/* NAV */}
+    <nav className="fixed top-0 left-0 right-0 z-40 px-5 py-3 flex items-center justify-between glass">
+      <a href={CFG.portfolioUrl} className="font-black text-base gtext">← Portfolio</a>
+      <div className="flex items-center gap-3">
+        <a href={repoUrl} target="_blank" className="text-sm text-gray-400 hover:text-[var(--c)] hidden sm:block">GitHub</a>
+        <button onClick={()=>setDark(d=>!d)} className="w-8 h-8 rounded-full flex items-center justify-center glass">{dark?'☀️':'🌙'}</button>
+      </div>
+    </nav>
+    {/* HERO */}
+    <section className="relative pt-28 pb-12 px-5 overflow-hidden">
+      <div className="absolute inset-0 noise"/>
+      <div className="absolute top-10 right-0 w-80 h-80 rounded-full opacity-20 animate-float" style={{background:`radial-gradient(circle,${CFG.catColor},transparent)`,filter:'blur(70px)'}}/>
+      <div className="relative max-w-4xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5 text-sm" style={{background:CFG.catColor+'1a',border:`1px solid ${CFG.catColor}44`,color:CFG.catColor}}><span>{CFG.catIcon}</span> {CFG.catLabel}</div>
+        <h1 className="text-4xl sm:text-6xl font-black mb-4 leading-tight text-white">{CFG.name}</h1>
+        <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed">{CFG.tagline}</p>
+        <div className="flex flex-wrap justify-center gap-2 mb-8">{CFG.tech.map(t=><span key={t} className="tag text-sm" style={{background:CFG.catColor+'18',color:CFG.catColor}}>{t}</span>)}</div>
+        <div className="flex flex-wrap justify-center gap-3"><a href="#demo" className="btn-p">⚡ Ver Demo ao Vivo</a><a href={repoUrl} target="_blank" className="btn-g">⭐ Código no GitHub</a></div>
+      </div>
+    </section>
+    {/* METRICS */}
+    {CFG.metrics.length>0&&<section className="px-5 pb-8"><div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3">{CFG.metrics.map((m,i)=><div key={i} className="glass rounded-2xl p-4 text-center card-hover"><div className="text-xl font-black gtext">{m.value}</div><div className="text-xs text-gray-400 mt-1">{m.name}</div></div>)}</div></section>}
+    {/* DEMO */}
+    <section id="demo" className="px-5 py-12"><div className="max-w-3xl mx-auto">
+      <div className="text-center mb-8"><h2 className="text-3xl font-black text-white mb-2">Demo Interativa <span className="gtext">ao Vivo</span></h2><p className="text-gray-400 text-sm">Veja o projeto funcionando objetivamente — interaja abaixo</p></div>
+      <div className="glass rounded-3xl p-6 glow"><div className="bg-black/40 rounded-2xl p-5 border border-white/10"><Demo/></div></div>
+    </div></section>
+    {/* FEATURES */}
+    {CFG.features.length>0&&<section className="px-5 py-10"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-white mb-6 text-center">✨ Principais Capacidades</h2><div className="grid sm:grid-cols-2 gap-3">{CFG.features.map((f,i)=><div key={i} className="glass rounded-xl p-4 flex items-start gap-3 card-hover"><span className="text-[var(--c)] mt-0.5">▹</span><span className="text-sm text-gray-300">{f}</span></div>)}</div></div></section>}
+    {/* CODE */}
+    <section className="px-5 py-10"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-white mb-2 text-center">💻 Código Real do Projeto</h2><p className="text-gray-400 text-sm text-center mb-6 font-mono">{CFG.codePath}</p><div className="code-box"><div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/5"><span className="w-3 h-3 rounded-full bg-red-500"/><span className="w-3 h-3 rounded-full bg-yellow-500"/><span className="w-3 h-3 rounded-full bg-green-500"/><span className="ml-2 text-xs text-gray-500 font-mono">{CFG.codePath}</span></div><pre className="scrollbar-thin">{CFG.code.length>2200?CFG.code.slice(0,2200)+'\n\n# ... ver código completo no GitHub':CFG.code}</pre></div></div></section>
+    {/* CTA */}
+    <section className="px-5 py-14"><div className="max-w-2xl mx-auto text-center glass rounded-3xl p-8"><div className="text-3xl mb-3">{CFG.catIcon}</div><h2 className="text-2xl font-black text-white mb-3">Gostou deste projeto?</h2><p className="text-gray-400 text-sm mb-6">Explore o código completo, dê uma estrela e conecte-se comigo. Faço parte de um portfolio de 124 projetos de IA de vanguarda.</p><div className="flex flex-wrap justify-center gap-3"><a href={repoUrl} target="_blank" className="btn-p">⭐ Star no GitHub</a><a href="https://linkedin.com/in/jhon-e-martinez" target="_blank" className="btn-g">💼 LinkedIn</a><a href={CFG.portfolioUrl} className="btn-g">🎨 Ver Portfolio</a></div></div></section>
+    {/* FOOTER */}
+    <footer className="px-5 py-10 text-center border-t border-white/5"><div className="gtext font-black text-xl mb-2">Jhon E. Martinez</div><p className="text-sm text-gray-500 mb-4">Tech Lead · GenAI Engineer · ML Engineer · Brasil 🇧🇷</p><div className="flex justify-center gap-5 text-sm"><a href="https://github.com/jhondados" target="_blank" className="text-[var(--c)]">GitHub</a><a href="https://linkedin.com/in/jhon-e-martinez" target="_blank" className="text-[var(--c)]">LinkedIn</a><a href="mailto:enriquecernadas2021@gmail.com" className="text-[var(--c)]">Email</a></div></footer>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
